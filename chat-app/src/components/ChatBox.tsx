@@ -19,12 +19,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ chat }) => {
   const messageEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
-  const { getUserId, token } = useAuth();
+  const { getUserId } = useAuth();
   const { subscribe, unsubscribe, connection } = useSignalR();
   const { leaveGroup, createNewChat, sendMessage} = useHubMethods();
   const chatRef = useRef(chat);
   const isFirstScrollRef = useRef(true);
-
+  
   useEffect(() => {
 
     if (messages.length > 0) {
@@ -210,7 +210,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ chat }) => {
     return ()=> {
       unsubscribe("ReceiveMessage", handleIncomingMessage);
     }
-  }, [token, connection]);
+  }, [connection]);
 
   const scrollToBottom = (behavior: ScrollBehavior = "auto") => {
     messageEndRef.current?.scrollIntoView({ behavior });

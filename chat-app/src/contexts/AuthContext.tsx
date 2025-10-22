@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode} from "react";
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import type { TokenPayload } from "../types/index";
 import { refreshToken } from "../services/HttpService";
@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     // get the token decoded payload
-    const getTokenPayload = useCallback((): TokenPayload | null => {
+    const getTokenPayload = (): TokenPayload | null => {
 
         if (!token) return null;
 
@@ -43,10 +43,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         return { userId: Number(decoded.userId), nickname: decoded.nickname, exp: decoded.exp };
-    }, [token])
+    }
 
     // check if the token expired
-    const isTokenValid = useCallback((): boolean => {
+    const isTokenValid = (): boolean => {
 
         const tokenPayload = getTokenPayload();
         if (!tokenPayload) return false;
@@ -56,15 +56,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         return false;
 
-    }, [getTokenPayload]);
+    }
 
     // get the user id from the token
-    const getUserId = useCallback((): number | null => {
+    const getUserId = (): number | null => {
         const tokenPayload = getTokenPayload();
         if (!tokenPayload) return null;
 
         return tokenPayload.userId;
-    }, [token, getTokenPayload]);
+    }
 
     
     useEffect(() => {

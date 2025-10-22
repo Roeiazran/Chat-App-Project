@@ -23,18 +23,18 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const selectedChatRef = useRef<Chat | null>(state.selectedChat);
-  const { getUserId, token } = useAuth();
+  const { getUserId } = useAuth();
   const { subscribe, unsubscribe, connection } = useSignalR();
 
-  const getNicknameById = useCallback((id: number | undefined) => {
+  const getNicknameById = (id: number | undefined) => {
     if (id === undefined) return undefined;
     return state.users.find((u: User) => u.userId === id)?.nickname;
-  }, [state.users]);
+  };
 
-  const getIsOnlineById = useCallback((id: number | undefined) => {
+  const getIsOnlineById = (id: number | undefined) => {
     if (id === undefined) return undefined;
     return state.users.find((u: User) => u.userId === id)?.isOnline;
-  }, [state.users]);
+  };
 
   // SignalR callback triggered whenever a new chat is created
   const handleNewChatCreated = (data: CreateChatResponse) => {
@@ -195,7 +195,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         unsubscribe("UserRegister", handleNewRegister);
         unsubscribe("UserOnlineStatusChanged", handleUserOnlineStatusChange);
       };
-  }, [token, connection]);
+  }, [connection]);
 
   return (
     <ChatContext.Provider value={{ 

@@ -15,35 +15,34 @@ export const SignalRProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [connection, setConnection] = useState<HubConnection | null>(null);
   const reconnectingRef = useRef(false);
 
-  // inits the Hub connection
-  const init = useCallback(async () => {
-    if (!token || reconnectingRef.current) return;
-
-    // lock this code segment to prevent race condition on the connection
-    reconnectingRef.current = true;
-
-    try {
-      if (connection) await connection.stop();
-
-      const conn = new HubConnectionBuilder()
-        .withUrl("http://localhost:5050/chatHub", {
-          accessTokenFactory: () => token,
-        })
-        .withAutomaticReconnect()
-        .build();
-
-      await conn.start();
-      setConnection(conn);
-    } finally {
-
-      // free the lock
-      reconnectingRef.current = false;
-    }
-  }, [token]);
-
   useEffect(() => {
+    const init = async () => {
+      if (!token || reconnectingRef.current) return;
+
+      // lock to prevent race conditions
+      reconnectingRef.current = true;
+
+      try {
+        if (connection) await connection.stop();
+
+        const conn = new HubConnectionBuilder()
+          .withUrl("http://localhost:5050/chatHub", { accessTokenFactory: () => token })
+          .withAutomaticReconnect()
+          .build();
+
+        await conn.start();
+        setConnection(conn);
+      } catch {
+        // on error, set connection to null so children unsubscribe
+        setConnection(null);
+      } finally {
+        // free the lock
+        reconnectingRef.current = false;
+      }
+    };
+
     init();
-  }, [init]);
+  }, [token]);
 
   // no valid token, stop the connection
   useEffect(() => {
