@@ -77,37 +77,37 @@ public class ChatHub : Hub
     {
         int userId = _chatHubService.AuthenticateAndGetUserId(Context);
         _chatHubService.ValidateModel(request);
+        if (request.IsGroup)
+        {
+            return await CreateGroupChat(request, userId);
+        }
+        return await CreatePrivateChat(request, userId);
+    }
+
+    public async Task<int> CreatePrivateChat(CreateChatRequest request, int userId) 
+    {
+        // check for existing chat with both participants, prevent race condition
+        int user1Id = request.ParticipantsIds[0];
+        int user2Id = request.ParticipantsIds[1];
+        string key = user1Id < user2Id ? $"{user1Id}-{user2Id}" : $"{user2Id}-{user1Id}";
+        object _lock = _privateChatLocks.GetOrAdd(key, _ => new object());
+
         int chatId;
+        lock(_lock) {
+            int existingChatId = _chatService.FindPrivateChat(user1Id, user2Id);
 
-        if (!request.IsGroup)
-        {
-            // check for existing chat with both participants, prevent race condition
-            int user1Id = request.ParticipantsIds[0];
-            int user2Id = request.ParticipantsIds[1];
-            string key = user1Id < user2Id ? $"{user1Id}-{user2Id}" : $"{user2Id}-{user1Id}";
-            object _lock = _privateChatLocks.GetOrAdd(key, _ => new object());
-
-            lock(_lock) {
-                int existingChatId = _chatService.FindPrivateChat(user1Id, user2Id);
-
-                if (existingChatId == 0)
-                {
-                    // create new chat
-                    chatId = _chatService.CreateChat(request.Name, false, request.UpdatedAt);
-                    _chatService.InsertParticipantsIntoChat(chatId, request.ParticipantsIds, request.UpdatedAt);
-                } else 
-                {
-                    // chat already exists, no need to add the participants
-                    chatId = existingChatId;
-                }
-            };
-            _privateChatLocks.TryRemove(key, out _);
-        }
-        else    // group chat
-        {
-            chatId = _chatService.CreateChat(request.Name, true, request.UpdatedAt);
-            _chatService.InsertParticipantsIntoChat(chatId, request.ParticipantsIds, request.UpdatedAt);
-        }
+            if (existingChatId == 0)
+            {
+                // create new chat
+                chatId = _chatService.CreateChat(request.Name, false, request.UpdatedAt);
+                _chatService.InsertParticipantsIntoChat(chatId, request.ParticipantsIds, request.UpdatedAt);
+            } else 
+            {
+                // chat already exists, no need to add the participants
+                chatId = existingChatId;
+            }
+        };
+        _privateChatLocks.TryRemove(key, out _);
 
         // add connections to the chat id group
         await _chatHubService.AddClientsToGroup(chatId, request.ParticipantsIds);
@@ -120,7 +120,34 @@ public class ChatHub : Hub
             IsGroup = request.IsGroup,
             LastUpdated = DateTime.UtcNow
         };
+
+        // notifying the other participants of this new chat
+        await Clients.OthersInGroup(chatId.ToString()).SendAsync("NewChatCreated", new { chat, CreatorId = userId });
+        
+        // returning the id to the creator of the chat
+        return chatId;
+    }
+
+    public async Task<int> CreateGroupChat(CreateChatRequest request, int userId)
+    {
+        int chatId = _chatService.CreateChat(request.Name, true, request.UpdatedAt);
+        _chatService.InsertParticipantsIntoChat(chatId, request.ParticipantsIds, request.UpdatedAt);
+
+        // add connections to the chat id group
+        await _chatHubService.AddClientsToGroup(chatId, request.ParticipantsIds);
+
+        ChatDto chat = new()
+        {
+            ChatId = chatId,
+            ChatName = request.Name,
+            Participants = request.ParticipantsIds,
+            IsGroup = request.IsGroup,
+            LastUpdated = DateTime.UtcNow
+        };
+
+        // notifying all participants of this new chat
         await Clients.Group(chatId.ToString()).SendAsync("NewChatCreated", new { chat, CreatorId = userId });
+
         return chatId;
     }
 

@@ -48,22 +48,19 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     
     if (!chat.isGroup) { // private chat
 
-      // for other users, for user we handle in chat box
-      if (creatorId === userId) return; 
-      
       // remove the chat from the off list by the the other user id
       const otherUserId = chat.participants.find(p => p !== userId)!;
       dispatch({ type: "removeOffChatByParticipantId", payload: otherUserId });
-      dispatch({ type: "addOnChat", payload: newChat });
     } else { // group chat
 
       // for the creator, select the chat
       if (userId === creatorId) { 
         dispatch({ type: "setSelectedChat", payload: newChat });
       }
-      // for everyone add the group to on going chats list
-      dispatch({ type: "addOnChat", payload: newChat });
     }
+    
+    // for everyone add the group to on going chats list
+    dispatch({ type: "addOnChat", payload: newChat });
   };
 
   // SignalR callback method triggered whenever a new user registers in the app
@@ -110,6 +107,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       // update the chat last visited date, for unread count correctness
       await updateLastVisited(message.chatId);
     }
+
   };
 
   // SignalR callback triggered whenever user changes it's online status
