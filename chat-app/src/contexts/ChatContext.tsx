@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, type ReactNode, useReducer, type Dispatch, useCallback } from "react";
+import { createContext, useContext, useEffect, useRef, type ReactNode, useReducer, type Dispatch } from "react";
 import type { User, Chat, Message, CreateChatResponse, ChatState, ChatAction } from "../types/index";
 import { extractErrorMessages, getChats, getMessages, updateLastVisited } from "../services/HttpService";
 import { chatReducer } from "../reducers/ChatReducer";
@@ -110,7 +110,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       // update the chat last visited date, for unread count correctness
       await updateLastVisited(message.chatId);
     }
-
   };
 
   // SignalR callback triggered whenever user changes it's online status

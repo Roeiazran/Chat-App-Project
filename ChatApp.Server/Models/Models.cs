@@ -2,6 +2,14 @@ using System;
 using System.ComponentModel.DataAnnotations;
 namespace ChatApp.Server.Models
 {
+    public class RefCountedLock
+    {
+        public object LockObj { get; set; }
+        private int RefCount;
+
+        public int Decrement() => Interlocked.Decrement(ref RefCount);
+        public int Increment() => Interlocked.Increment(ref RefCount);
+    }
     public class User
     {
         public int UserId { get; set; }

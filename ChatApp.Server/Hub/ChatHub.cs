@@ -10,6 +10,7 @@ public class ChatHub : Hub
     private readonly ChatHubService _chatHubService;
 
     private static readonly ConcurrentDictionary<string, object> _privateChatLocks = new();
+    private static readonly ConcurrentDictionary<string, RefCountedLock> _chatLocks = new();
 
     public ChatHub(ChatService chatService, ConnectionManager connectionManager, ChatHubService chatHubService)
     {
@@ -131,20 +132,32 @@ public class ChatHub : Hub
     {
         int userId = _chatHubService.AuthenticateAndGetUserId(Context);
         _chatHubService.ValidateModel(request);
-        
-        int id = _chatService.AddMessage(userId, request.ChatId, request.Content, request.SentAt);
 
+        // lock the -- add-message, update chat's last updated -- 
+        RefCountedLock chatLock = _chatLocks.GetOrAdd(request.ChatId.ToString(), _ => new RefCountedLock());
+        // increment the reference count
+        chatLock.Increment();
+
+        int messageId;
+        lock(chatLock) {
+            messageId = _chatService.AddMessage(userId, request.ChatId, request.Content, request.SentAt);
+            _chatService.UpdateChatLastUpdated(request.ChatId, request.SentAt);
+        }
+
+        int refs = chatLock.Decrement();
+        if (refs == 0) {
+            _chatLocks.TryRemove(request.ChatId.ToString(), out _);
+        }
+        
         await Clients.Group(request.ChatId.ToString()).SendAsync("ReceiveMessage",
             new Message
             {
                 ChatId = request.ChatId,
                 Content = request.Content,
-                MessageId = id,
+                MessageId = messageId,
                 SenderId = userId,
                 SentAt = request.SentAt
             });
-
-        _chatService.UpdateChatLastUpdated(request.ChatId, request.SentAt);
     }
 
     /// <summary>

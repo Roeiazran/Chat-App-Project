@@ -23,7 +23,7 @@ public class ChatHubService
     /// <param name="groupsIds">The group id</param>
     public async Task AddClientToGroups(string connection, List<int> groupsIds) 
     {
-        foreach (int id in groupsIds) 
+        foreach (int id in groupsIds)
         {
             await _hubContext.Groups.AddToGroupAsync(connection, id.ToString());
         }
@@ -125,7 +125,6 @@ public class ChatHubService
     /// <param name="model">The model instance to validate</param>
     /// <exception cref="ArgumentNullException">No model giving.</exception>
     /// <exception cref="HubException">Model isn't valid.</exception>
-    
     public void ValidateModel<T>(T model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
