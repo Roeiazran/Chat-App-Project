@@ -2,6 +2,7 @@
 
 ChatApp.Server/bin
 ChatApp.Server/obj
+ChatApp.Server/DAL
 
 chat-app/dist
 chat-app/node_modules
