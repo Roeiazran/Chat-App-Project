@@ -1,4 +1,3 @@
 1. Block access to the connection dictionary per user connection.
-2. Fix the race condition on chat's last updated in AddMessage
-3. Split the createChat for better readability, group and private, this should 
+2. Split the createChat for better readability, group and private, this should 
     help with splitting the creation in the frontend as well.

@@ -62,6 +62,8 @@ public class ConnectionManager
     /// <summary>
     /// Get all logged-in users ids
     /// </summary>
-    public List<int> GetOnlineUsersIds() => _userConnections.Keys.ToList();
+    public List<int> GetOnlineUsersIds() {
+        lock (_lock) return _userConnections.Keys.ToList();
+    }
 
 }
