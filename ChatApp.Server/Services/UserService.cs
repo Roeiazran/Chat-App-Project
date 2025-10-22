@@ -2,6 +2,7 @@ namespace ChatApp.Server.Services;
 using Microsoft.AspNetCore.Identity; 
 using ChatApp.Server.DAL;
 using ChatApp.Server.Models;
+using System.Data.SqlClient;
 
 public class UserService
 {
@@ -76,20 +77,23 @@ public class UserService
     {
         // Hash the password before saving
         string hashedPassword = _passwordHasher.HashPassword(user, user.Password);
-
-        int id = _dal.ExecCmdWithParamsAndResult(
-            SqlServerDAL.CommandType.StoredProcedure,
-            "RegisterUser",
-            new Dictionary<string, object>
-            {
-                { "Username", user.Username },
-                { "Password", hashedPassword },
-                { "Nickname", user.Nickname }
-            },
-            reader => reader.ReadBestResultset(()=> reader.GetInt32("UserId")
-            )
-        );
-        return id;
+        try {
+            return (int)_dal.ExecCmdWithParamsAndResult(
+                SqlServerDAL.CommandType.StoredProcedure,
+                "RegisterUser",
+                new Dictionary<string, object>
+                {
+                    { "Username", user.Username },
+                    { "Password", hashedPassword },
+                    { "Nickname", user.Nickname }
+                },
+                reader => reader.ReadBestResultset(() => reader.GetDecimal("UserId")
+                )
+            );
+        } catch (SqlException ex) when (ex.Number == 2627)
+        {
+            throw new InvalidOperationException("Username already exists", ex);
+        }
     }
 
     /// <summary>

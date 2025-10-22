@@ -1,0 +1,8 @@
+
+
+ChatApp.Server/bin
+ChatApp.Server/obj
+
+chat-app/dist
+chat-app/node_modules
+

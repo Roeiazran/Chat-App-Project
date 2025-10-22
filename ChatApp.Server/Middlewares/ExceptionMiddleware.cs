@@ -1,4 +1,6 @@
 namespace ChatApp.Server.Middlewares;
+
+using System.Data.SqlClient;
 using System.Net;
 using System.Text.Json;
 
@@ -46,7 +48,12 @@ public class ExceptionMiddleware
                 status = HttpStatusCode.Unauthorized;
                 message = exception.Message;
                 break;
-
+            
+            case SqlException:
+                status = HttpStatusCode.Conflict;
+                message = exception.Message;
+                break;
+            
             case ArgumentException argEx:
                 status = HttpStatusCode.BadRequest;
                 message = argEx.Message;

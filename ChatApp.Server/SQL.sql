@@ -128,7 +128,6 @@ BEGIN
 END;
 
 ---
-
 CREATE PROCEDURE RegisterUser
     @Username NVARCHAR(100),
     @Password NVARCHAR(256),
@@ -137,16 +136,22 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @UserId INT;
+    BEGIN TRY
+        INSERT INTO Users (Username, Password, Nickname)
+        VALUES (@Username, @Password, @Nickname);
 
-    INSERT INTO Users (Username, Password, Nickname)
-    VALUES (@Username, @Password, @Nickname);
-
-    SET @UserId = SCOPE_IDENTITY();
-    
-    SELECT @UserId AS UserId;
+        SELECT SCOPE_IDENTITY() AS UserId;
+    END TRY
+    BEGIN CATCH
+        IF ERROR_NUMBER() = 2627 -- Unique constraint violation
+        BEGIN
+            RAISERROR('Username already exists', 16, 1);
+            RETURN;
+        END
+        ELSE
+            THROW;
+    END CATCH
 END
-
 ---
 
 CREATE PROCEDURE UpdateChatLastVisited
