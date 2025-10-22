@@ -196,7 +196,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({ chat }) => {
         }
       });
     }
-
   };
 
   useEffect(()=> {

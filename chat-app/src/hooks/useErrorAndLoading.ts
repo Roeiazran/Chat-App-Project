@@ -1,30 +1,28 @@
-import { useState, useCallback } from "react";
-
+import { useState } from "react";
 
 export function useErrorAndLoading() {
     const [errors, setErrors] = useState<string[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const startLoad = useCallback(()=> {
+    const startLoad = ()=> {
         setLoading(true);
-    }, []);
+    };
 
-    const finishLoad = useCallback(()=> {
+    const finishLoad = ()=> {
         setLoading(false);
-    }, []);
+    };
 
-    const appendError = useCallback((error: string) => {
+    const appendError = (error: string) => {
         setErrors(prev => [...prev, error]);
-    }, []);
+    };
 
-    const updateErrors = useCallback((errors: string[])=> {
+    const updateErrors = (errors: string[])=> {
         setErrors(errors);
-    }, []);
+    };
 
-    const clearErrors = useCallback(()=> {
+    const clearErrors = ()=> {
         setErrors([]);
-    }, []);
-
+    };
 
     return { errors, loading, appendError, clearErrors, startLoad, finishLoad, updateErrors };
 }

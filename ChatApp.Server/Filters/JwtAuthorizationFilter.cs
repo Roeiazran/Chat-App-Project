@@ -36,6 +36,5 @@ public class JwtAuthorizationFilter : IAuthorizationFilter
         {
             StatusCode = StatusCodes.Status401Unauthorized
         };
-
     }
 }

@@ -71,7 +71,6 @@ export const getMessages = async (chatId: number): Promise<Message[]> => {
 
 export const getMessagesReport = async (date: string): Promise<HourReports[]> => {
   const res = await api.get(`/chat/report?date=${date}`);
-  console.log(res.data.reports);
   return res.data.reports;
 };
 

@@ -83,7 +83,7 @@ public class UserController : ControllerBase
         string? authHeader = HttpContext.Request.Headers.Authorization.FirstOrDefault();
         UserDto? user = JwtService.GetUserDataFromHeader(authHeader);
 
-        if (user == null) 
+        if (user == null)
             return Unauthorized("Auth header is required for refresh");
 
         if (!Request.Cookies.TryGetValue("refreshToken", out string? refreshToken))

@@ -215,6 +215,7 @@ public class JwtService
             }).ToList()
         );
     }
+    
     /// <summary>
     /// Validate the refresh token by searching it in the database.
     /// </summary>
